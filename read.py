@@ -2,10 +2,11 @@ import cv2
 from pyzbar.pyzbar import decode
 import os
 import json
+import sys
 
 # Make one method to decode the barcode
-INICIAIS_ACEITAS = ["NU", "FL", "FN", "BR"]
-PASTA = './pasta'
+INICIAIS_ACEITAS = ["NU", "FL", "FN", "BR", 'VR']
+IMAGE_FINAL = ["png", "jpg", "jpeg"]
 
 
 def rotate_image(mat, angle):
@@ -67,11 +68,33 @@ if __name__ == "__main__":
     # Variavel para contabilizar os documentos.
     quantidade_documentos_registrados = 0
     # Identificar nomes pelos arquivos/fotos dentro da pastar.
-    for diretorio, subpastas, arquivos in os.walk(PASTA):
+    # path = 'C:/Users/Wesquel/Desktop/Skanner/src/imagens/'
+    # Example: python read.py 'name archive json' 'path'
+    if len(sys.argv) > 2:
+        path = sys.argv[2]
+        name_aquive = sys.argv[1]
+    else:
+        path = 'C:/Users/Wesquel/Desktop/Skanner/src/imagens/'
+        name_aquive = "db"
+    totalPorcentagem = 0
+    listaDeImagens = []
+    for diretorio, subpastas, arquivos in os.walk(os.path.abspath(path)):
         for arquivo in arquivos:
-            data = BarcodeReader("pasta/" + arquivo)
-            dicionario_imagens_cod[arquivo] = data
-            print(dicionario_imagens_cod)
+            for x in IMAGE_FINAL:
+                if x in arquivo:
+                    listaDeImagens.append(arquivo)
+    porcentagemPorUnidae = 1.0 / len(listaDeImagens)
+    for imagen in listaDeImagens:
+        txtPorcentagem = open('porcentagem.txt', 'w')
+        txtPorcentagem.write(str(round(totalPorcentagem,2)))
+        data = BarcodeReader(path + imagen)
+        dicionario_imagens_cod[imagen] = data
+        print(totalPorcentagem)
+        totalPorcentagem += porcentagemPorUnidae
+        txtPorcentagem.buffer.flush()
     # Gerando JSON
-    with open('data1.json', 'w', encoding='utf-8') as outfile:
+    with open(name_aquive + '.json', 'w', encoding='utf-8') as outfile:
         json.dump(dicionario_imagens_cod, outfile, ensure_ascii=False, indent=2)
+    txtPorcentagem = open('porcentagem.txt', 'w')
+    txtPorcentagem.write("1.0")
+    txtPorcentagem.close()
