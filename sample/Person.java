@@ -2,12 +2,13 @@ package sample;
 
 public class Person {
 
-    String id,name,code;
+    private String id,name,code,imageReference;
 
-    public Person(String id, String name, String code) {
+    public Person(String id, String name, String code, String imageReference) {
         this.id = id;
         this.name = name;
         this.code = code;
+        this.imageReference = imageReference;
     }
 
     public String getId() {
@@ -32,5 +33,13 @@ public class Person {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getImageReference() {
+        return imageReference;
+    }
+
+    public void setImageReference(String imageReference) {
+        this.imageReference = imageReference;
     }
 }
