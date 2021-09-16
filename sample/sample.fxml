@@ -8,13 +8,12 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -32,42 +31,41 @@
                            <children>
                               <HBox prefHeight="50.0" prefWidth="200.0">
                                  <children>
-                                    <ToggleButton fx:id="getJsonButton" mnemonicParsing="false" onAction="#selectDirectory" prefWidth="105.0" text="Gerar JSON">
+                                    <ToggleButton fx:id="getJsonButton" mnemonicParsing="false" onAction="#generateJson" prefHeight="20.0" prefWidth="105.0" text="Gerar JSON">
                                        <HBox.margin>
                                           <Insets left="20.0" top="10.0" />
                                        </HBox.margin>
                                     </ToggleButton>
-                                    <ProgressIndicator progress="0.0">
+                                    <ProgressBar fx:id="progressBarJson" prefHeight="25.0" prefWidth="230.0" progress="0.0">
                                        <HBox.margin>
-                                          <Insets top="5.0" />
+                                          <Insets left="10.0" top="12.0" />
                                        </HBox.margin>
-                                    </ProgressIndicator>
+                                    </ProgressBar>
                                  </children>
                                  <VBox.margin>
                                     <Insets top="170.0" />
                                  </VBox.margin>
                               </HBox>
                               <VBox prefHeight="49.0" prefWidth="300.0">
-                                 <children>
-                                    <Hyperlink fx:id="selectJsonHyperLink" onAction="#selectJsonFile" text="Selecionar JSON" />
-                                    <TextField fx:id="selectJsonTextFiled" editable="false" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="25.0" prefWidth="331.0" />
-                                 </children>
                                  <padding>
                                     <Insets left="20.0" />
                                  </padding>
                                  <VBox.margin>
                                     <Insets />
                                  </VBox.margin>
-                              </VBox>
-                              <HBox prefHeight="86.0" prefWidth="469.0">
                                  <children>
-                                    <Button fx:id="buttonIniciar" mnemonicParsing="false" onAction="#InitialAction" prefHeight="25.0" prefWidth="110.0" text="Iniciar">
-                                       <HBox.margin>
-                                          <Insets left="130.0" top="30.0" />
-                                       </HBox.margin>
+                                    <Hyperlink fx:id="cancelGenerateJson" onAction="#cancelGenerateAction" text="Cancelar" visible="false">
+                                       <VBox.margin>
+                                          <Insets left="293.0" top="-10.0" />
+                                       </VBox.margin>
+                                    </Hyperlink>
+                                    <Button fx:id="buttonIniciar" mnemonicParsing="false" onAction="#InitialAction" prefHeight="25.0" prefWidth="110.0" text="Iniciar" visible="false">
+                                       <VBox.margin>
+                                          <Insets left="110.0" top="-10.0" />
+                                       </VBox.margin>
                                     </Button>
                                  </children>
-                              </HBox>
+                              </VBox>
                            </children>
                         </VBox>
                         <VBox fx:id="vBoxPod" prefHeight="433.0" prefWidth="385.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
@@ -177,6 +175,100 @@
                               </Label>
                            </children>
                         </VBox>
+                        <VBox fx:id="vBoxEditPerson" prefHeight="200.0" prefWidth="100.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <VBox prefHeight="55.0" prefWidth="100.0">
+                                 <children>
+                                    <Label text="Edição dos dados do documento">
+                                       <VBox.margin>
+                                          <Insets left="90.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <Label text="CODIGO" />
+                                    <TextField fx:id="textFieldCodeEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="260.0" />
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets left="10.0" right="10.0" top="80.0" />
+                                 </VBox.margin>
+                              </VBox>
+                              <VBox prefHeight="55.0" prefWidth="100.0">
+                                 <children>
+                                    <Label text="NOME">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                       <VBox.margin>
+                                          <Insets left="10.0" />
+                                       </VBox.margin>
+                                    </Label>
+                                    <TextField fx:id="textFieldNameEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="300.0">
+                                       <opaqueInsets>
+                                          <Insets />
+                                       </opaqueInsets>
+                                       <VBox.margin>
+                                          <Insets left="10.0" right="10.0" />
+                                       </VBox.margin>
+                                    </TextField>
+                                 </children>
+                                 <VBox.margin>
+                                    <Insets top="10.0" />
+                                 </VBox.margin>
+                              </VBox>
+                              <VBox prefHeight="55.0" prefWidth="100.0">
+                                 <children>
+                                    <Label text="ID" />
+                                    <TextField fx:id="textFieldIdEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="300.0">
+                                       <VBox.margin>
+                                          <Insets />
+                                       </VBox.margin>
+                                    </TextField>
+                                 </children>
+                                 <padding>
+                                    <Insets left="10.0" right="10.0" />
+                                 </padding>
+                                 <VBox.margin>
+                                    <Insets top="-5.0" />
+                                 </VBox.margin>
+                              </VBox>
+                              <HBox prefHeight="70.0" prefWidth="372.0">
+                                 <children>
+                                    <Button mnemonicParsing="false" onAction="#setChangedEditPerson" prefHeight="25.0" prefWidth="110.0" text="Alterar">
+                                       <HBox.margin>
+                                          <Insets left="50.0" top="15.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="backEditButton" mnemonicParsing="false" onAction="#backToPod" prefHeight="25.0" prefWidth="110.0" text="Voltar">
+                                       <HBox.margin>
+                                          <Insets left="50.0" top="15.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 </children>
+                              </HBox>
+                              <Separator prefWidth="200.0" />
+                              <Label text="Editar Imagen">
+                                 <padding>
+                                    <Insets left="145.0" />
+                                 </padding>
+                              </Label>
+                              <HBox prefHeight="38.0" prefWidth="372.0">
+                                 <children>
+                                    <Button fx:id="leftRotateButton11" mnemonicParsing="false" onAction="#rotateLeft" prefHeight="25.0" prefWidth="110.0" text="Girar">
+                                       <HBox.margin>
+                                          <Insets left="50.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                    <Button fx:id="rightRotateButton11" mnemonicParsing="false" onAction="#rotateRight" prefHeight="25.0" prefWidth="110.0" text="Girar">
+                                       <HBox.margin>
+                                          <Insets left="50.0" />
+                                       </HBox.margin>
+                                    </Button>
+                                 </children>
+                                 <padding>
+                                    <Insets top="10.0" />
+                                 </padding>
+                              </HBox>
+                           </children>
+                        </VBox>
                      </children>
                   </AnchorPane>
                   <AnchorPane prefHeight="661.0" prefWidth="7.0">
@@ -187,9 +279,6 @@
                   <AnchorPane fx:id="anchorPaneImageView">
                      <children>
                         <ImageView fx:id="imageViewDocument" cache="true" fitHeight="489.0" fitWidth="755.0" pickOnBounds="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <image>
-                              <Image url="@../../../pythonProject/pasta/1.01.jpg" />
-                           </image>
                            <cursor>
                               <Cursor fx:constant="DEFAULT" />
                            </cursor>
