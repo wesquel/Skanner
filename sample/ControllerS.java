@@ -3,6 +3,9 @@ package sample;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinUser;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -20,6 +23,8 @@ import javafx.stage.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
 
 import java.io.*;
 import java.net.URL;
@@ -34,6 +39,8 @@ public class ControllerS extends Main implements Initializable {
     @FXML private TableColumn<Person, String> nameColumn;
     @FXML private TableColumn<Person, String> idColumn;
     @FXML private TableColumn<Person, String> codeColumn;
+    @FXML private TableColumn<Person, String> listaColumn;
+    @FXML private TableColumn<Person, String> podColumn;
     @FXML private Button buttonIniciar;
     @FXML private TextField textFieldName;
     @FXML private TextField textFieldId;
@@ -47,14 +54,21 @@ public class ControllerS extends Main implements Initializable {
     @FXML private ImageView imageViewDocument;
     @FXML private AnchorPane anchorPaneMain;
     @FXML private VBox vBoxPod;
+    @FXML private Label labelEditPerson;
     @FXML private VBox vBoxInitial;
     @FXML private Label labelTotalDocumentosAnalisados;
     @FXML private Label labelTotalDeDocumentos;
     @FXML private ProgressBar progressBarJson;
     @FXML private Hyperlink cancelGenerateJson;
     @FXML private VBox vBoxEditPerson;
-    @FXML private String imagenName;
-    @FXML private Image imagenAtual;
+    @FXML private VBox vBoxLogin;
+    @FXML private Button loginButton;
+    @FXML private TextField userTextFiel;
+    @FXML private PasswordField passwordField;
+    @FXML private Label labelLogin;
+    @FXML private VBox vBoxUp;
+    @FXML private ProgressBar progessBarLista;
+    @FXML private ProgressBar progessBarPOD;
 
     // Variaveis
     private int rotateAxi;
@@ -69,22 +83,44 @@ public class ControllerS extends Main implements Initializable {
     private Boolean ThreadJson = false;
     private Person personEditable;
     ObservableList<Person> items = FXCollections.observableArrayList();
+    private String imagenName;
+    private Image imagenAtual;
+    private volatile Thread loginThread;
+    private volatile Thread podThread;
+    private String username;
+    private String password;
+    private WebDriver driver;
+    private VBox lastWindow;
+    int contadorPod = 0;
+    int contadorLista = 0;
+    private File selectedDirectory;
 
     // Definir Paramentros e Variaveis na inicialização do programa.
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        Process process;
         nameColumn.setCellValueFactory(new PropertyValueFactory<Person, String>("name"));
         idColumn.setCellValueFactory(new PropertyValueFactory<Person, String>("id"));
         codeColumn.setCellValueFactory(new PropertyValueFactory<Person, String>("code"));
-//        tableViewPerson.setRowFactory(tv ->{
-//            // Define our new TableRow
-//            TableRow<Person> row = new TableRow<>();
-//            row.setOnMouseClicked(event -> {
-//                System.out.println("Do your stuff here!");
-//            });
-//            return row;
-//        });
+        listaColumn.setCellValueFactory(new PropertyValueFactory<Person, String>("lista"));
+        podColumn.setCellValueFactory(new PropertyValueFactory<Person, String>("pod"));
+        textFieldId.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue,
+                                String newValue) {
+                if (!newValue.matches("\\d*")) {
+                    textFieldId.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            }
+        });
+        textFieldIdEditPerson.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue,
+                                String newValue) {
+                if (!newValue.matches("\\d*")) {
+                    textFieldIdEditPerson.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            }
+        });
         tableViewPerson.setRowFactory(e ->{
             TableRow<Person> row =  new TableRow<Person>();
             row.setOnMouseClicked(c ->{
@@ -95,24 +131,8 @@ public class ControllerS extends Main implements Initializable {
             });
             return row;
         });
-//        nameColumn.setCellFactory(tc -> {
-//            TableCell<Person, String> cell = new TableCell<Person, String>() {
-//                @Override
-//                protected void updateItem(String item, boolean empty) {
-//                    super.updateItem(item, empty) ;
-//                    setText(empty ? null : item);
-//                }
-//            };
-//            cell.setOnMouseClicked(e -> {
-//                if (!cell.isEmpty()) {
-//                    String userId = cell.getItem();
-//                    System.out.println(cell.getItem());
-//                    // do something with id...
-//                }
-//            });
-//            return cell ;
-//        });
     }
+
 
     // Função de ação ao aperta ENTER dentro de um TextField para otimização de tempo do usuario.
     public void keyEnterPressed(KeyEvent event){
@@ -127,6 +147,24 @@ public class ControllerS extends Main implements Initializable {
             }else{
                 textFieldCode.requestFocus();
                 addPerson(new ActionEvent());
+            }
+        }
+    }
+
+
+    // Função caso a tecla pressionada sejar enter no textFieldEdit.
+    public void keyEnterPressedInEditPerson(KeyEvent event){
+        if (event.getCode() == KeyCode.ENTER) {
+            if (textFieldCodeEditPerson.isFocused()) {
+                textFieldNameEditPerson.requestFocus();
+                CheckEmpyField(textFieldCodeEditPerson);
+            }
+            else if(textFieldNameEditPerson.isFocused()){
+                textFieldIdEditPerson.requestFocus();
+                CheckEmpyField(textFieldNameEditPerson);
+            }else{
+                textFieldCodeEditPerson.requestFocus();
+                setChangedEditPerson(new ActionEvent());
             }
         }
     }
@@ -155,6 +193,7 @@ public class ControllerS extends Main implements Initializable {
     public void InitialAction(ActionEvent event){
         vBoxInitial.setVisible(false);
         vBoxPod.setVisible(true);
+        lastWindow = vBoxPod;
         loadJson();
         totalDeDocumentos = splited.length;
         labelTotalDeDocumentos.setText("Total de Documentos: "+totalDeDocumentos);
@@ -168,6 +207,8 @@ public class ControllerS extends Main implements Initializable {
             return;
         }
         vBoxPod.setVisible(false);
+        vBoxLogin.setVisible(true);
+        lastWindow = vBoxLogin;
         event.consume();
     }
 
@@ -188,7 +229,7 @@ public class ControllerS extends Main implements Initializable {
             barCode = "";
         }
         textFieldCode.setText(barCode);
-        Image image = new Image(Objects.requireNonNull(getClass().getResource("imagens/"+imagenName)).toExternalForm());
+        Image image = new Image("file:"+selectedDirectory.getAbsolutePath()+"/"+imagenName);
         resetImageRotate(new ActionEvent());
         imageViewDocument.setImage(image);
         this.imagenAtual = image;
@@ -201,7 +242,7 @@ public class ControllerS extends Main implements Initializable {
         if (totalDeDocumentos <= totalDoumentosAnalisados || CheckEmpyField(textFieldCode) || CheckEmpyField(textFieldName) || CheckEmpyField(textFieldId)){
             return;
         }
-        items.add(new Person(textFieldId.getText(),textFieldName.getText(),textFieldCode.getText().toUpperCase(Locale.ROOT),this.imagenName));
+        items.add(new Person(textFieldId.getText(),textFieldName.getText(),textFieldCode.getText().toUpperCase(Locale.ROOT),this.imagenName,"x","x"));
         tableViewPerson.setItems(items);
         updateDocumentosAnalisados();
         textFieldCode.clear();
@@ -211,26 +252,33 @@ public class ControllerS extends Main implements Initializable {
         event.consume();
     }
 
+    // Exibir tela de edição de documento.
     public void showEditPerson(Person p){
-        vBoxPod.setVisible(false);
+        labelEditPerson.setText("Edição dos dados do documento");
+        lastWindow.setVisible(false);
         vBoxEditPerson.setVisible(true);
         textFieldCodeEditPerson.setText(p.getCode());
         textFieldNameEditPerson.setText(p.getName());
         textFieldIdEditPerson.setText(p.getId());
         resetImageRotate(new ActionEvent());
-        imageViewDocument.setImage(new Image(Objects.requireNonNull(getClass().getResource("imagens/"+p.getImageReference())).toExternalForm()));
+        imageViewDocument.setImage(new Image("file:"+selectedDirectory.getAbsolutePath()+"/"+p.getImageReference()));
         this.personEditable = p;
     }
 
-    public void backToPod(ActionEvent event){
+    // Voltar para tela anterior.
+    public void backToWindow(ActionEvent event){
         vBoxEditPerson.setVisible(false);
-        vBoxPod.setVisible(true);
+        lastWindow.setVisible(true);
         imageViewDocument.setImage(imagenAtual);
         resetImageRotate(new ActionEvent());
         event.consume();
     }
 
+    // Atualizando as informações com base nos valores alterados na edição do documento.
     public void setChangedEditPerson(ActionEvent event){
+        if(CheckEmpyField(textFieldCodeEditPerson) || CheckEmpyField(textFieldNameEditPerson) || CheckEmpyField(textFieldIdEditPerson)){
+            return;
+        }
         personEditable.setCode(textFieldCodeEditPerson.getText());
         personEditable.setId(textFieldIdEditPerson.getText());
         personEditable.setName(textFieldNameEditPerson.getText());
@@ -243,7 +291,7 @@ public class ControllerS extends Main implements Initializable {
         if (CheckEmpyField(textFieldCode) || totalDeDocumentos <= totalDoumentosAnalisados){
             return;
         }
-        items.add(new Person("0000","Caixa de Correio",textFieldCode.getText(),this.imagenName));
+        items.add(new Person("0000","Caixa de Correio",textFieldCode.getText(),this.imagenName,"x","x"));
         tableViewPerson.setItems(items);
         updateDocumentosAnalisados();
         textFieldCode.clear();
@@ -288,7 +336,7 @@ public class ControllerS extends Main implements Initializable {
 
     }
 
-    //Gerar Json
+    //Fechar o prompt de comando ao finalizar sua atividade.
     public void killPrompt(){
         WinDef.HWND hwnd = User32.INSTANCE.FindWindow(null, "C:\\Windows\\system32\\cmd.exe"); // window title
         WinDef.HWND hwnd1 = User32.INSTANCE.FindWindow(null,"C:\\Windows\\system32\\cmd.exe - python  read.py db "+this.pathToImage+"/");
@@ -297,6 +345,32 @@ public class ControllerS extends Main implements Initializable {
         }
         if(hwnd1 != null){
             User32.INSTANCE.PostMessage(hwnd1, WinUser.WM_CLOSE, null, null);
+        }
+    }
+
+    //Função para setar a janela foco. (usada quando tem algum erro na hora de enviar os documentos).
+    public static void setFocusToWindowsApp(String applicationTitle, int windowState) {
+        int state = windowState;
+        switch (state) {
+            default:
+            case 0:
+                state = User32.SW_SHOWNORMAL;
+                break;
+            case 1:
+                state = User32.SW_SHOWMAXIMIZED;
+                break;
+            case 2:
+                state = User32.SW_SHOWMINIMIZED;
+                break;
+        }
+        User32 user32 = User32.INSTANCE;
+        WinDef.HWND hWnd = user32.FindWindow(null, applicationTitle);
+        if (user32.IsWindowVisible(hWnd)) {
+            if (state != User32.SW_SHOWMINIMIZED) {
+                user32.ShowWindow(hWnd, User32.SW_SHOWMINIMIZED);
+            }
+            user32.ShowWindow(hWnd, state);
+            user32.SetFocus(hWnd);
         }
     }
 
@@ -329,7 +403,7 @@ public class ControllerS extends Main implements Initializable {
         }
     }
 
-
+    // Ação que cancela a geração dos codigos de barras.
     public void cancelGenerateAction(ActionEvent event) {
         cancelGenerateJson.setVisible(false);
         buttonIniciar.setVisible(false);
@@ -346,18 +420,18 @@ public class ControllerS extends Main implements Initializable {
         event.consume();
     }
 
-    //Action on click button Gerar Json.
+    //Action on click button Generate Json.
     public void generateJson(ActionEvent event){
         if (ThreadJson || cancelGenerateJson.isVisible()){
             getJsonButton.setSelected(true);
             return;
         }
         this.pathToImage = selectDirectory();
-        String pathLocal = new File("src").getAbsolutePath();
-        pathLocal = pathLocal+"\\sample\\barCodeRead\\";
         if (pathToImage == null){
             return;
         }
+        String pathLocal = new File("src").getAbsolutePath();
+        pathLocal = pathLocal+"\\sample\\barCodeRead\\";
         cancelGenerateJson.setVisible(true);
         try {
             Runtime.getRuntime().exec("cmd.exe /c cd \"" + pathLocal + "\" & start /min cmd.exe /k \"python read.py db " + pathToImage + "/\"");
@@ -379,13 +453,156 @@ public class ControllerS extends Main implements Initializable {
         }
     }
 
+    public void initialLogin(){
+        if (loginThread != null) {
+            loginThread = null;
+        } else {
+            loginThread = new Thread(this::loginWeb);
+            loginThread.start();
+        }
+    }
+
+    //Ação realizada ao pressionar o botão de login.
+    public void loginAction(ActionEvent event){
+        this.username = userTextFiel.getText();
+        this.password = passwordField.getText();
+        initialLogin();
+        event.consume();
+    }
+
+
+    public void loginWeb(){
+        //&& contadorLista != items.size()
+        if (driver != null){
+            return;
+        }
+        try {
+            try {
+                Platform.runLater(() -> labelLogin.setText("Capturando Driver."));
+                System.setProperty("webdriver.chrome.driver", new File("libs").getAbsolutePath() + "\\driver\\chromedriver.exe");
+            }catch (IllegalStateException e){
+                return;
+            }
+            Platform.runLater(() -> labelLogin.setText("Abrindo navegador."));
+            this.driver = new ChromeDriver();
+            driver.get("https://pegasus.flashpegasus.com.br/");
+            Platform.runLater(() -> labelLogin.setText("Conectando-se ao site."));
+            driver.switchTo().frame("FrameGeral");
+            try {
+                WebElement usernameInput = driver.findElement(By.id("username"));
+                WebElement passwordInput = driver.findElement(By.id("password"));
+                WebElement buttonLogin = driver.findElement(By.className("ui-button"));
+                usernameInput.sendKeys(this.username);
+                passwordInput.sendKeys(this.password);
+                buttonLogin.click();
+            }catch (NoSuchElementException element){
+                driver.quit();
+                Platform.runLater(() -> labelLogin.setText("elementos de login não encontrados."));
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                driver.quit();
+                e.printStackTrace();
+            }
+            try {
+                driver.findElement(By.className("ui-messages-error-icon"));
+                driver.quit();
+                driver = null;
+                Platform.runLater(() -> labelLogin.setText("Usuário ou senha incorreto."));
+            } catch (RuntimeException c) {
+                Platform.runLater(() -> labelLogin.setText("Login completo."));
+                vBoxLogin.setVisible(false);
+                vBoxUp.setVisible(true);
+                lastWindow = vBoxUp;
+            }
+        }catch (NoSuchFrameException ignored){
+            Platform.runLater(() -> labelLogin.setText("Erro: Frame não encontrado."));
+        }
+    }
+
+    public void podWeb(ActionEvent event){
+        if (podThread != null) {
+            podThread = null;
+        } else {
+            podThread = new Thread(this::initialPodWeb);
+            podThread.start();
+        }
+        event.consume();
+    }
+
+    public void initialPodWeb(){
+        Person docAtual;
+        if (driver == null){
+            return;
+        }
+        while (contadorPod < items.size()) {
+            driver.get("https://pegasus.flashpegasus.com.br/FlashPegasus/pages/baixa/baixarPod.xhtml");
+            try {
+                docAtual = items.get(contadorPod);
+                imageViewDocument.setImage(new Image("file:"+selectedDirectory.getAbsolutePath()+"/"+docAtual.getImageReference()));
+                WebElement leitorCodigoDeBarras = driver.findElement(By.id("leituraDocumento"));
+                leitorCodigoDeBarras.sendKeys(docAtual.getCode());
+                leitorCodigoDeBarras.sendKeys(Keys.ENTER);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    WebElement campoNome = driver.findElement(By.id("dadosHawbForm:campoNome"));
+                    WebElement campoRg = driver.findElement(By.id("dadosHawbForm:j_idt300"));
+                    WebElement campoHora = driver.findElement(By.id("dadosHawbForm:hora"));
+                    WebElement campoData = driver.findElement(By.id("dadosHawbForm:data_input"));
+                    WebElement buttonEnviarPOD = driver.findElement(By.id("dadosHawbForm:btnGravar"));
+                    campoNome.sendKeys(docAtual.getName());
+                    campoRg.sendKeys(docAtual.getId());
+                    if (campoHora.getText().equals("") || campoData.getText().equals("")) {
+                        erroUploadDocument(docAtual, "ERRO: Campo de Data ou Hora Vazio");
+                        return;
+                    }
+                    //buttonEnviarPOD.click();
+                    docAtual.setPod("^");
+                    tableViewPerson.refresh();
+                    contadorPod+=1;
+                    progessBarPOD.setProgress((1.0/totalDeDocumentos)*contadorPod);
+                }catch (NoSuchElementException element){
+                    erroUploadDocument(docAtual,"ERRO NO DOCUMENTO ATUAL!");
+                    return;
+                }
+            }catch (NoSuchElementException element){
+                System.out.println("tentei2");
+                return;
+            }
+        }
+    }
+
+    public void erroUploadDocument(Person docAtual, String erroMsg){
+        showEditPerson(docAtual);
+        Platform.runLater(() -> labelEditPerson.setText(erroMsg));
+        setFocusToWindowsApp("Skanner",0);
+        podThread = null;
+    }
+
+    public void listaWeb(ActionEvent event){
+        Person docAtual;
+        if (driver == null){
+            return;
+        }
+
+        while(contadorLista < items.size()){
+            driver.get("https://pegasus.flashpegasus.com.br/FlashPegasus/pages/listas/baixarLista.xhtml");
+            docAtual = items.get(contadorLista);
+        }
+    }
+
 
     // Selecionar Diretorio das Imagens.
     public String selectDirectory(){
         DirectoryChooser directoryChooser = new DirectoryChooser();
         Stage stage = (Stage) anchorPaneMain.getScene().getWindow();
         directoryChooser.setInitialDirectory(new File("src"));
-        File selectedDirectory = directoryChooser.showDialog(stage);
+        this.selectedDirectory = directoryChooser.showDialog(stage);
         if (selectedDirectory != null){
             return selectedDirectory.getAbsolutePath();
         }
