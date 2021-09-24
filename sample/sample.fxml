@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
@@ -18,6 +19,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="anchorPaneMain" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="661.0" prefWidth="1133.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.ControllerS">
    <children>
@@ -29,21 +31,29 @@
                      <children>
                         <VBox fx:id="vBoxInitial" layoutX="10.0" layoutY="10.0" prefHeight="433.0" prefWidth="385.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <children>
+                              <Label text="Capturar Codigo de Barras">
+                                 <VBox.margin>
+                                    <Insets left="110.0" top="140.0" />
+                                 </VBox.margin>
+                              </Label>
                               <HBox prefHeight="50.0" prefWidth="200.0">
                                  <children>
-                                    <ToggleButton fx:id="getJsonButton" mnemonicParsing="false" onAction="#generateJson" prefHeight="20.0" prefWidth="105.0" text="Gerar JSON">
+                                    <ToggleButton fx:id="getJsonButton" mnemonicParsing="false" onAction="#generateJson" prefHeight="25.0" prefWidth="114.0" text="Selecionar Imagens">
                                        <HBox.margin>
-                                          <Insets left="20.0" top="10.0" />
+                                          <Insets left="5.0" top="10.0" />
                                        </HBox.margin>
+                                       <font>
+                                          <Font size="11.0" />
+                                       </font>
                                     </ToggleButton>
-                                    <ProgressBar fx:id="progressBarJson" prefHeight="25.0" prefWidth="230.0" progress="0.0">
+                                    <ProgressBar fx:id="progressBarJson" prefHeight="25.0" prefWidth="241.0" progress="0.0">
                                        <HBox.margin>
-                                          <Insets left="10.0" top="12.0" />
+                                          <Insets left="5.0" top="11.0" />
                                        </HBox.margin>
                                     </ProgressBar>
                                  </children>
                                  <VBox.margin>
-                                    <Insets top="170.0" />
+                                    <Insets top="20.0" />
                                  </VBox.margin>
                               </HBox>
                               <VBox prefHeight="49.0" prefWidth="300.0">
@@ -179,13 +189,13 @@
                            <children>
                               <VBox prefHeight="55.0" prefWidth="100.0">
                                  <children>
-                                    <Label text="Edição dos dados do documento">
+                                    <Label fx:id="labelEditPerson" text="Edição dos dados do documento">
                                        <VBox.margin>
                                           <Insets left="90.0" />
                                        </VBox.margin>
                                     </Label>
                                     <Label text="CODIGO" />
-                                    <TextField fx:id="textFieldCodeEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="260.0" />
+                                    <TextField fx:id="textFieldCodeEditPerson" onKeyPressed="#keyEnterPressedInEditPerson" prefHeight="25.0" prefWidth="260.0" />
                                  </children>
                                  <VBox.margin>
                                     <Insets left="10.0" right="10.0" top="80.0" />
@@ -201,7 +211,7 @@
                                           <Insets left="10.0" />
                                        </VBox.margin>
                                     </Label>
-                                    <TextField fx:id="textFieldNameEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="300.0">
+                                    <TextField fx:id="textFieldNameEditPerson" onKeyPressed="#keyEnterPressedInEditPerson" prefHeight="25.0" prefWidth="300.0">
                                        <opaqueInsets>
                                           <Insets />
                                        </opaqueInsets>
@@ -217,7 +227,7 @@
                               <VBox prefHeight="55.0" prefWidth="100.0">
                                  <children>
                                     <Label text="ID" />
-                                    <TextField fx:id="textFieldIdEditPerson" onKeyPressed="#keyEnterPressed" prefHeight="25.0" prefWidth="300.0">
+                                    <TextField fx:id="textFieldIdEditPerson" onKeyPressed="#keyEnterPressedInEditPerson" prefHeight="25.0" prefWidth="300.0">
                                        <VBox.margin>
                                           <Insets />
                                        </VBox.margin>
@@ -237,7 +247,7 @@
                                           <Insets left="50.0" top="15.0" />
                                        </HBox.margin>
                                     </Button>
-                                    <Button fx:id="backEditButton" mnemonicParsing="false" onAction="#backToPod" prefHeight="25.0" prefWidth="110.0" text="Voltar">
+                                    <Button fx:id="backEditButton" mnemonicParsing="false" onAction="#backToWindow" prefHeight="25.0" prefWidth="110.0" text="Voltar">
                                        <HBox.margin>
                                           <Insets left="50.0" top="15.0" />
                                        </HBox.margin>
@@ -269,6 +279,69 @@
                               </HBox>
                            </children>
                         </VBox>
+                        <VBox fx:id="vBoxLogin" prefHeight="200.0" prefWidth="100.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label text="Usuario">
+                                 <VBox.margin>
+                                    <Insets left="10.0" top="150.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <TextField fx:id="userTextFiel">
+                                 <VBox.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </VBox.margin>
+                              </TextField>
+                              <Label text="Senha">
+                                 <VBox.margin>
+                                    <Insets left="10.0" top="10.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <PasswordField fx:id="passwordField">
+                                 <VBox.margin>
+                                    <Insets left="10.0" right="10.0" />
+                                 </VBox.margin>
+                              </PasswordField>
+                              <Button fx:id="loginButton" mnemonicParsing="false" onAction="#loginAction" prefHeight="25.0" prefWidth="70.0" text="Login">
+                                 <VBox.margin>
+                                    <Insets left="138.0" top="20.0" />
+                                 </VBox.margin>
+                              </Button>
+                              <Label fx:id="labelLogin" text="Aguardando login.">
+                                 <VBox.margin>
+                                    <Insets left="10.0" top="10.0" />
+                                 </VBox.margin>
+                              </Label>
+                           </children>
+                        </VBox>
+                        <VBox fx:id="vBoxUp" prefHeight="491.0" prefWidth="372.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <children>
+                              <Label prefHeight="17.0" prefWidth="103.0" text="Enviar documentos">
+                                 <VBox.margin>
+                                    <Insets left="133.0" top="130.0" />
+                                 </VBox.margin>
+                              </Label>
+                              <ProgressBar fx:id="progessBarLista" prefHeight="25.0" prefWidth="325.0" progress="0.0">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="30.0" />
+                                 </VBox.margin>
+                              </ProgressBar>
+                              <ToggleButton mnemonicParsing="false" onAction="#listaWeb" prefHeight="25.0" prefWidth="65.0" text="Lista">
+                                 <VBox.margin>
+                                    <Insets left="150.0" top="12.0" />
+                                 </VBox.margin>
+                              </ToggleButton>
+                              <ProgressBar fx:id="progessBarPOD" prefHeight="25.0" prefWidth="325.0" progress="0.0">
+                                 <VBox.margin>
+                                    <Insets left="25.0" top="25.0" />
+                                 </VBox.margin>
+                              </ProgressBar>
+                              <ToggleButton mnemonicParsing="false" onAction="#podWeb" prefHeight="25.0" prefWidth="65.0" text="POD">
+                                 <VBox.margin>
+                                    <Insets left="150.0" top="12.0" />
+                                 </VBox.margin>
+                              </ToggleButton>
+                           </children>
+                        </VBox>
                      </children>
                   </AnchorPane>
                   <AnchorPane prefHeight="661.0" prefWidth="7.0">
@@ -293,9 +366,11 @@
          <children>
             <TableView fx:id="tableViewPerson" editable="true" prefHeight="180.0" prefWidth="1133.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <columns>
-                <TableColumn fx:id="nameColumn" prefWidth="249.0" text="Nome" />
-                <TableColumn fx:id="idColumn" minWidth="0.0" prefWidth="126.0" text="ID" />
-                  <TableColumn fx:id="codeColumn" minWidth="0.0" prefWidth="756.0" text="Codigo" />
+                <TableColumn fx:id="nameColumn" prefWidth="212.0" sortable="false" text="Nome" />
+                <TableColumn fx:id="idColumn" minWidth="0.0" prefWidth="163.0" sortable="false" text="ID" />
+                  <TableColumn fx:id="codeColumn" minWidth="0.0" prefWidth="481.0" sortable="false" text="Codigo" />
+                  <TableColumn fx:id="listaColumn" editable="false" maxWidth="454.0" minWidth="0.0" prefWidth="150.0" sortable="false" text="Lista" />
+                  <TableColumn fx:id="podColumn" editable="false" maxWidth="480.0" minWidth="0.0" prefWidth="126.0" sortable="false" text="POD" />
               </columns>
             </TableView>
          </children>
